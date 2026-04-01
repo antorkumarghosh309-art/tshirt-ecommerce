@@ -1,0 +1,57 @@
+#!/bin/bash
+
+echo "🚀 Starting Tshirt E-commerce One-Click Setup..."
+
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Node.js
+if ! command -v node &> /dev/null
+then
+    echo "📦 Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt install -y nodejs build-essential
+else
+    echo "✅ Node.js already installed"
+fi
+
+# Install MongoDB
+if ! command -v mongod &> /dev/null
+then
+    echo "📦 Installing MongoDB..."
+    sudo apt install -y mongodb
+    sudo systemctl start mongodb
+    sudo systemctl enable mongodb
+else
+    echo "✅ MongoDB already installed"
+fi
+
+# Install PM2
+if ! command -v pm2 &> /dev/null
+then
+    echo "📦 Installing PM2..."
+    npm install -g pm2
+else
+    echo "✅ PM2 already installed"
+fi
+
+# Backend Setup
+echo "⚙️ Setting up Backend..."
+cd backend
+npm install
+pm2 start server.js --name tshirt-backend
+cd ..
+
+# Frontend Setup
+echo "⚙️ Setting up Frontend..."
+cd frontend
+npm install
+npm run build
+pm2 serve build 3000 --name tshirt-frontend
+cd ..
+
+# Done
+pm2 save
+echo "🎉 Setup Complete! Your website is running."
+echo "Frontend: http://server-ip:3000"
+echo "Backend API: http://server-ip:5000"
